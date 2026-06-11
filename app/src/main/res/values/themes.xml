@@ -6,4 +6,12 @@
     </style>
 
     <style name="Theme.NesineApp" parent="Base.Theme.NesineApp" />
+
+    <!-- Splash Screen API theme. Applied to MainActivity; hands off to the main
+         theme via postSplashScreenTheme once the activity is ready. -->
+    <style name="Theme.NesineApp.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_round</item>
+        <item name="postSplashScreenTheme">@style/Theme.NesineApp</item>
+    </style>
 </resources>

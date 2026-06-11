@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Nesine App</string>
+
+    <!-- Listing -->
+    <string name="empty_posts">No posts to show</string>
+    <string name="post_deleted">Post deleted</string>
+    <string name="undo">UNDO</string>
+    <string name="post_image_desc">Post image</string>
+
+    <!-- Detail / update -->
+    <string name="detail_title">Edit Post</string>
+    <string name="hint_title">Title</string>
+    <string name="hint_body">Description</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="error_required">This field is required</string>
 </resources>
