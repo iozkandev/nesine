@@ -37,12 +37,9 @@ fun PostDetailRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                PostDetailEffect.NavigateBack -> onBack()
-            }
-        }
+    // Leave the screen once the save succeeds.
+    LaunchedEffect(state.isSaved) {
+        if (state.isSaved) onBack()
     }
 
     PostDetailScreen(

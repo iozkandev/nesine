@@ -2,19 +2,15 @@ package com.iozkan.nesineapp.presentation.compose.detail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.iozkan.nesineapp.domain.usecase.GetPostUseCase
 import com.iozkan.nesineapp.domain.usecase.UpdatePostUseCase
 import com.iozkan.nesineapp.presentation.compose.navigation.DetailDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,9 +25,6 @@ class PostDetailViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
-
-    private val _effects = Channel<PostDetailEffect>(Channel.BUFFERED)
-    val effects = _effects.receiveAsFlow()
 
     init {
         getPost(postId)?.let { post ->
@@ -64,6 +57,6 @@ class PostDetailViewModel @Inject constructor(
 
         val original = getPost(postId) ?: return
         updatePost(original.copy(title = current.title.trim(), body = current.body.trim()))
-        viewModelScope.launch { _effects.send(PostDetailEffect.NavigateBack) }
+        _state.update { it.copy(isSaved = true) }
     }
 }

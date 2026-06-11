@@ -9,23 +9,22 @@ import com.iozkan.nesineapp.domain.usecase.RefreshPostsUseCase
 import com.iozkan.nesineapp.domain.usecase.RestorePostUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
 /**
- * MVI ViewModel for the Compose listing screen. Note it orchestrates the very
- * same domain use cases as the Views-side MVVM `PostListViewModel` — the reuse
- * boundary is the domain layer, while each UI keeps its idiomatic shape.
+ * MVI ViewModel for the Compose listing screen. It orchestrates the same domain
+ * use cases as the Views-side MVVM `PostListViewModel`.
  *
- * - State in : single [StateFlow] of [PostListState].
+ * - State    : single [StateFlow] of [PostListState].
  * - Intents  : a single [onEvent] sink taking [PostListEvent].
- * - Effects  : one-shot [PostListEffect]s via a [Channel] (snackbars, errors).
+ * - Messages : transient user messages live in [PostListState.userMessage] and
+ *              are cleared via [PostListEvent.MessageShown].
  */
 @HiltViewModel
 class PostListViewModel @Inject constructor(
@@ -38,10 +37,8 @@ class PostListViewModel @Inject constructor(
     private val _state = MutableStateFlow(PostListState(isLoading = true))
     val state: StateFlow<PostListState> = _state.asStateFlow()
 
-    private val _effects = Channel<PostListEffect>(Channel.BUFFERED)
-    val effects = _effects.receiveAsFlow()
-
     private var lastDeleted: Pair<Post, Int>? = null
+    private val messageIds = AtomicLong(0L)
 
     init {
         observeCache()
@@ -53,6 +50,7 @@ class PostListViewModel @Inject constructor(
             PostListEvent.Refresh -> refresh()
             is PostListEvent.Delete -> onDelete(event.post, event.index)
             PostListEvent.UndoDelete -> onUndo()
+            is PostListEvent.MessageShown -> onMessageShown(event.id)
         }
     }
 
@@ -70,8 +68,15 @@ class PostListViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             refreshPosts()
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false) }
-                    _effects.send(PostListEffect.ShowError(error.message ?: "Something went wrong"))
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            userMessage = UserMessage.Error(
+                                id = messageIds.incrementAndGet(),
+                                text = error.message ?: "Something went wrong"
+                            )
+                        )
+                    }
                 }
                 .onSuccess { _state.update { it.copy(isLoading = false) } }
         }
@@ -80,11 +85,18 @@ class PostListViewModel @Inject constructor(
     private fun onDelete(post: Post, index: Int) {
         lastDeleted = post to index
         deletePost(post.id)
-        viewModelScope.launch { _effects.send(PostListEffect.ShowUndoSnackbar) }
+        _state.update {
+            it.copy(userMessage = UserMessage.PostDeleted(id = messageIds.incrementAndGet()))
+        }
     }
 
     private fun onUndo() {
         lastDeleted?.let { (post, index) -> restorePost(post, index) }
         lastDeleted = null
+    }
+
+    /** Clears the message only if it is still the one the UI reported showing. */
+    private fun onMessageShown(id: Long) {
+        _state.update { if (it.userMessage?.id == id) it.copy(userMessage = null) else it }
     }
 }

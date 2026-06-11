@@ -64,24 +64,24 @@ fun PostListRoute(
     val undoLabel = stringResource(R.string.undo)
     val deletedLabel = stringResource(R.string.post_deleted)
 
-    LaunchedEffect(Unit) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                PostListEffect.ShowUndoSnackbar -> {
-                    val result = snackbarHostState.showSnackbar(
-                        message = deletedLabel,
-                        actionLabel = undoLabel,
-                        duration = SnackbarDuration.Long
-                    )
-                    if (result == SnackbarResult.ActionPerformed) {
-                        viewModel.onEvent(PostListEvent.UndoDelete)
-                    }
-                }
+    // Show the current message as a snackbar (running Undo if tapped), then tell
+    // the ViewModel it was shown. Keyed on the message so a new one re-triggers.
+    val message = state.userMessage
+    LaunchedEffect(message) {
+        if (message == null) return@LaunchedEffect
+        val result = when (message) {
+            is UserMessage.PostDeleted -> snackbarHostState.showSnackbar(
+                message = deletedLabel,
+                actionLabel = undoLabel,
+                duration = SnackbarDuration.Long
+            )
 
-                is PostListEffect.ShowError ->
-                    snackbarHostState.showSnackbar(effect.message)
-            }
+            is UserMessage.Error -> snackbarHostState.showSnackbar(message.text)
         }
+        if (result == SnackbarResult.ActionPerformed) {
+            viewModel.onEvent(PostListEvent.UndoDelete)
+        }
+        viewModel.onEvent(PostListEvent.MessageShown(message.id))
     }
 
     PostListScreen(
