@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.navigation.safeargs)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -39,6 +41,11 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
+    }
+    composeCompiler {
+        // Emit stability/skippability reports under build/compose_compiler/.
+        reportsDestination = layout.buildDirectory.dir("compose_compiler")
     }
 }
 
@@ -83,6 +90,23 @@ dependencies {
 
     // Splash Screen API
     implementation(libs.androidx.core.splashscreen)
+
+    // --- Jetpack Compose (parallel MVI flow) ---
+    val composeBom = platform(libs.androidx.compose.bom)
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.coil.compose)
+    implementation(libs.kotlinx.collections.immutable)
+    implementation(libs.kotlinx.serialization.json)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

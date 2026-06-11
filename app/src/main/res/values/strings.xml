@@ -1,10 +1,17 @@
 <resources>
     <string name="app_name">Nesine App</string>
 
+    <!-- Chooser -->
+    <string name="chooser_title">Nesine Case Study</string>
+    <string name="chooser_subtitle">Pick a UI toolkit. Both flows share the same domain &amp; data layers.</string>
+    <string name="chooser_views">Classic Views (MVVM)</string>
+    <string name="chooser_compose">Jetpack Compose (MVI)</string>
+
     <!-- Listing -->
     <string name="empty_posts">No posts to show</string>
     <string name="post_deleted">Post deleted</string>
     <string name="undo">UNDO</string>
+    <string name="delete">Delete</string>
     <string name="post_image_desc">Post image</string>
 
     <!-- Detail / update -->
