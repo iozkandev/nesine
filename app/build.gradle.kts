@@ -47,6 +47,12 @@ android {
         // Emit stability/skippability reports under build/compose_compiler/.
         reportsDestination = layout.buildDirectory.dir("compose_compiler")
     }
+    testOptions {
+        unitTests {
+            // Robolectric (used by the type-safe-route ViewModel test) needs resources.
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -110,6 +116,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
